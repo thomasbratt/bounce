@@ -3,12 +3,10 @@ extern crate sdl2;
 use sdl2::render::WindowCanvas;
 use sdl2::EventPump;
 
-use crate::context::Context;
+use crate::dispatch::Dispatcher;
 use crate::error::FrameworkError;
 
-
-
-pub fn initialize() -> Result<Context, FrameworkError> {
+pub fn initialize() -> Result<Dispatcher, FrameworkError> {
 
     // TODO: more errors
     let sdl_context = sdl2::init().unwrap();
@@ -29,7 +27,7 @@ pub fn initialize() -> Result<Context, FrameworkError> {
     let mut event_pump: EventPump = sdl_context.event_pump().unwrap();
 
     // // let mut event_pump = sdl_context.event_pump().unwrap();
-    Ok(Context{canvas, event_pump, sdl_context})
+    Ok(Dispatcher::new(canvas, event_pump, sdl_context))
 }
 
 #[cfg(test)]
