@@ -1,6 +1,2 @@
 [workspace]
 members = [ "application", "framework" ]
-
-#[[bin]]
-#name = "bounce"
-#path = "application/src/main.rs"
