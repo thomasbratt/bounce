@@ -15,13 +15,16 @@ extern crate sdl2;
 
 use sdl2::render::WindowCanvas;
 use std::time::Duration;
+
+use sdl2::pixels::Color;
+
 use framework::initialize;
 use framework::FrameworkError;
-use sdl2::pixels::Color;
+use framework::Context;
 
 pub fn main() {
 
-    let mut canvas = match initialize() {
+    let mut context: Context = match initialize() {
         Ok(c) => c,
         Err(e) => {
             eprintln!("Error: failed to initialize. {}", e);
@@ -31,9 +34,13 @@ pub fn main() {
 
     const BACKGROUND_COLOR: Color = Color::GRAY;
 
-    canvas.set_draw_color(BACKGROUND_COLOR);
-    canvas.clear();
-    canvas.present();
+    context.canvas.set_draw_color(BACKGROUND_COLOR);
+    context.canvas.clear();
+    context.canvas.present();
+
+    let _ = context.event_pump.poll_iter();
+
+    ::std::thread::sleep(Duration::from_secs(3));
 
     // let mut event_pump = sdl_context.event_pump().unwrap();
     // 0

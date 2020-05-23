@@ -1,9 +1,14 @@
 extern crate sdl2;
 
 use sdl2::render::WindowCanvas;
+use sdl2::EventPump;
+
+use crate::context::Context;
 use crate::error::FrameworkError;
 
-pub fn initialize() -> Result<WindowCanvas, FrameworkError> {
+
+
+pub fn initialize() -> Result<Context, FrameworkError> {
 
     // TODO: more errors
     let sdl_context = sdl2::init().unwrap();
@@ -14,15 +19,18 @@ pub fn initialize() -> Result<WindowCanvas, FrameworkError> {
         .position_centered()
         .build()?;
 
-    let wc: WindowCanvas = window
+    let canvas: WindowCanvas = window
         .into_canvas()
         .accelerated()
         .present_vsync()
         .build()?;
 
-    return Ok(wc);
-}
+    // TODO: error handling as above ^
+    let mut event_pump: EventPump = sdl_context.event_pump().unwrap();
 
+    // // let mut event_pump = sdl_context.event_pump().unwrap();
+    Ok(Context{canvas, event_pump, sdl_context})
+}
 
 #[cfg(test)]
 mod tests {
