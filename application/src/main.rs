@@ -32,6 +32,23 @@ pub fn main() {
         }
     };
 
+    // Elm-like loop:
+    //
+    // add frame timer duration to initialize
+    // event type: frame, key, mouse
+    //
+    // init_model -> M
+    // update_model(event, M) -> M
+    // render(canvas, M)
+    //
+    // Note that model generation process can happen async, so long as it provides an implementation
+    // of the required interfaces.
+    //
+    // initialize should return Result<Dispatcher, FrameworkError>
+
+
+
+
     const BACKGROUND_COLOR: Color = Color::GRAY;
 
     context.canvas.set_draw_color(BACKGROUND_COLOR);
