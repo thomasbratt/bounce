@@ -7,8 +7,6 @@ use std::time::Duration;
 
 use crate::model;
 
-// const WINDOW_SIZE: (u32, u32) = (1600, 1200);
-
 pub fn render(canvas: &mut WindowCanvas, model: &model::Model) {
     canvas.set_draw_color(Color::BLACK);
     canvas.clear();

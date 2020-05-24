@@ -3,7 +3,7 @@ use framework::Action;
 use math::clamp;
 
 // TODO: should be part of model
-const WINDOW_SIZE: (u32, u32) = (1600, 1200);
+pub const WINDOW_SIZE: (u32, u32) = (1600, 1200);
 const START_POSITION_X: i32 = (WINDOW_SIZE.0 + BAT_SIZE.0) as i32 / 2;
 const START_POSITION_Y: i32 = (WINDOW_SIZE.1 - 2 * BAT_SIZE.1) as i32;
 const BAT_SIZE: (u32, u32) = (200, 40);

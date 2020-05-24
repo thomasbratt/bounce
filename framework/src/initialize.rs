@@ -6,14 +6,13 @@ use sdl2::EventPump;
 use crate::dispatch::Dispatcher;
 use crate::error::FrameworkError;
 
-// TODO: title and size as parameters
-pub fn initialize() -> Result<Dispatcher, FrameworkError> {
+pub fn initialize(title: &str, width: u32, height: u32) -> Result<Dispatcher, FrameworkError> {
     // TODO: more errors
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
     let window: sdl2::video::Window = video_subsystem
-        .window("Bouncing Ball", 1600, 1200)
+        .window(title, width, height)
         .position_centered()
         .build()?;
 
