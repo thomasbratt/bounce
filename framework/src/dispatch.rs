@@ -1,14 +1,13 @@
 extern crate sdl2;
 
-use sdl2::EventPump;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::Sdl;
 use sdl2::render::WindowCanvas;
+use sdl2::EventPump;
+use sdl2::Sdl;
 
-use crate::action::Action as Action;
+use crate::action::Action;
 use std::time::Duration;
-
 
 // use self::sdl2::event::Event;
 
@@ -26,7 +25,6 @@ use std::time::Duration;
 //
 // initialize should return Result<Dispatcher, FrameworkError>
 
-
 pub struct Dispatcher {
     canvas: WindowCanvas,
     event_pump: EventPump,
@@ -34,33 +32,42 @@ pub struct Dispatcher {
 }
 
 impl Dispatcher {
-
-    pub fn new(canvas: WindowCanvas,
-               event_pump: EventPump,
-               sdl_context: Sdl) -> Self {
-        Dispatcher{canvas, event_pump, sdl_context}
+    pub fn new(canvas: WindowCanvas, event_pump: EventPump, sdl_context: Sdl) -> Self {
+        Dispatcher {
+            canvas,
+            event_pump,
+            sdl_context,
+        }
     }
 
     pub fn run<Model>(
-        & mut self,
+        &mut self,
         init_model: fn() -> Model,
         update_model: fn(action: Action, model: &Model) -> Option<Model>,
-        render: fn(canvas: &mut WindowCanvas, model: &Model)){
-
+        render: fn(canvas: &mut WindowCanvas, model: &Model),
+    ) {
         let mut model: Model = init_model();
+
+        render(&mut self.canvas, &model);
 
         'running: loop {
             for event in self.event_pump.poll_iter() {
-                let action = Dispatcher::extract_action(event);
-                if action == Action::None {
-                    ::std::thread::sleep(Duration::from_millis(10));
-                } else {
-                    if let Some(new_model) = update_model(action, &model) {
-                        model = new_model;
+                match Dispatcher::extract_action(event) {
+                    Action::None => {
+                        // TODO: more intelligent sleep
+                        ::std::thread::sleep(Duration::from_millis(10));
+                    }
+                    Action::Quit => {
+                        println!("Quit");
+                        break 'running;
+                    }
+                    action => {
+                        if let Some(new_model) = update_model(action, &model) {
+                            model = new_model;
+                            render(&mut self.canvas, &model);
+                        }
                     }
                 }
-
-                render(&mut self.canvas, &model);
             }
         }
     }
@@ -74,9 +81,7 @@ impl Dispatcher {
             | Event::KeyDown {
                 keycode: Some(Keycode::Left),
                 ..
-            } => {
-                Action::Left
-            }
+            } => Action::Left,
             Event::KeyDown {
                 keycode: Some(Keycode::D),
                 ..
@@ -84,19 +89,13 @@ impl Dispatcher {
             | Event::KeyDown {
                 keycode: Some(Keycode::Right),
                 ..
-            } => {
-                Action::Right
-            }
+            } => Action::Right,
             Event::Quit { .. }
             | Event::KeyDown {
                 keycode: Some(Keycode::Escape),
                 ..
-            } => {
-                Action::Quit
-            }
-            _ => {
-                Action::None
-            }
+            } => Action::Quit,
+            _ => Action::None,
         }
     }
 }

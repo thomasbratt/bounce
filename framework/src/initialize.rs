@@ -6,8 +6,8 @@ use sdl2::EventPump;
 use crate::dispatch::Dispatcher;
 use crate::error::FrameworkError;
 
+// TODO: title and size as parameters
 pub fn initialize() -> Result<Dispatcher, FrameworkError> {
-
     // TODO: more errors
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -17,11 +17,7 @@ pub fn initialize() -> Result<Dispatcher, FrameworkError> {
         .position_centered()
         .build()?;
 
-    let canvas: WindowCanvas = window
-        .into_canvas()
-        .accelerated()
-        .present_vsync()
-        .build()?;
+    let canvas: WindowCanvas = window.into_canvas().accelerated().present_vsync().build()?;
 
     // TODO: error handling as above ^
     let mut event_pump: EventPump = sdl_context.event_pump().unwrap();

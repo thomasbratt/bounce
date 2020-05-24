@@ -1,5 +1,5 @@
 [package]
-name = "application"
+name = "bounce"
 version = "0.1.0"
 authors = ["Thomas Bratt <thomas.bratt@gmail.com>"]
 edition = "2018"
