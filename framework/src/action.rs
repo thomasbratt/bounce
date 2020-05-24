@@ -2,6 +2,7 @@
 pub enum Action {
     None,
     Start,
+    Timer,
     Left,
     Right,
     Up,

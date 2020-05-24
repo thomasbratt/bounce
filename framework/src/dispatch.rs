@@ -1,41 +1,26 @@
 extern crate sdl2;
 
+use std::time::{Duration, Instant};
+
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::render::WindowCanvas;
 use sdl2::EventPump;
-use sdl2::Sdl;
 
 use crate::action::Action;
-
-// use self::sdl2::event::Event;
-
-// Elm-like loop:
-//
-// add frame timer duration to initialize
-// event type: frame, key, mouse
-//
-// init_model -> M
-// update_model(event, M) -> M
-// render(canvas, M)
-//
-// Note that model generation process can happen async, so long as it provides an implementation
-// of the required interfaces.
-//
-// initialize should return Result<Dispatcher, FrameworkError>
 
 pub struct Dispatcher {
     canvas: WindowCanvas,
     event_pump: EventPump,
-    sdl_context: Sdl,
+    interval: Option<Duration>,
 }
 
 impl Dispatcher {
-    pub fn new(canvas: WindowCanvas, event_pump: EventPump, sdl_context: Sdl) -> Self {
+    pub fn new(canvas: WindowCanvas, event_pump: EventPump, interval: Option<Duration>) -> Self {
         Dispatcher {
             canvas,
             event_pump,
-            sdl_context,
+            interval,
         }
     }
 
@@ -48,6 +33,11 @@ impl Dispatcher {
         let mut model: Model = init_model();
 
         render(&mut self.canvas, &model);
+
+        let mut timer_action_at = match self.interval {
+            Some(x) => Instant::now() + x,
+            None => Instant::now(),
+        };
 
         'running: loop {
             for event in self.event_pump.wait_timeout_iter(10) {
@@ -63,6 +53,18 @@ impl Dispatcher {
                     }
                 }
             }
+            match self.interval {
+                Some(x) => {
+                    if Instant::now() >= timer_action_at {
+                        timer_action_at += x;
+                        if let Some(new_model) = update_model(Action::Timer, &model) {
+                            model = new_model;
+                            render(&mut self.canvas, &model);
+                        }
+                    }
+                }
+                None => {}
+            };
         }
     }
 
