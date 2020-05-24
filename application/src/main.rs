@@ -1,7 +1,4 @@
 use framework::initialize;
-use framework::Action;
-use framework::Dispatcher;
-use framework::FrameworkError;
 
 mod math;
 mod model;
@@ -15,6 +12,4 @@ pub fn main() {
             std::process::exit(1);
         }
     };
-
-    println!("OK: Finished");
 }

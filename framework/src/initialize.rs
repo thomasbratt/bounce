@@ -19,16 +19,7 @@ pub fn initialize(title: &str, width: u32, height: u32) -> Result<Dispatcher, Fr
     let canvas: WindowCanvas = window.into_canvas().accelerated().present_vsync().build()?;
 
     // TODO: error handling as above ^
-    let mut event_pump: EventPump = sdl_context.event_pump().unwrap();
+    let event_pump: EventPump = sdl_context.event_pump().unwrap();
 
-    // // let mut event_pump = sdl_context.event_pump().unwrap();
     Ok(Dispatcher::new(canvas, event_pump, sdl_context))
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }

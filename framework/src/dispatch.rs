@@ -7,7 +7,6 @@ use sdl2::EventPump;
 use sdl2::Sdl;
 
 use crate::action::Action;
-use std::time::Duration;
 
 // use self::sdl2::event::Event;
 
@@ -51,14 +50,9 @@ impl Dispatcher {
         render(&mut self.canvas, &model);
 
         'running: loop {
-            for event in self.event_pump.poll_iter() {
+            for event in self.event_pump.wait_timeout_iter(10) {
                 match Dispatcher::extract_action(event) {
-                    Action::None => {
-                        // TODO: more intelligent sleep
-                        ::std::thread::sleep(Duration::from_millis(10));
-                    }
                     Action::Quit => {
-                        println!("Quit");
                         break 'running;
                     }
                     action => {

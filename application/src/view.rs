@@ -3,7 +3,6 @@ extern crate sdl2;
 use self::sdl2::rect::Rect;
 use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
-use std::time::Duration;
 
 use crate::model;
 
