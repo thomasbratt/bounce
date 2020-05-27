@@ -1,38 +1,39 @@
 use crate::math;
+use crate::shape;
+
 use framework::Action;
 use math::clamp;
+use shape::Shape;
 
-// TODO: should be part of model
-pub const WINDOW_SIZE: (u32, u32) = (1600, 1200);
-const START_POSITION_X: i32 = (WINDOW_SIZE.0 + BAT_SIZE.0) as i32 / 2;
-const START_POSITION_Y: i32 = (WINDOW_SIZE.1 - 2 * BAT_SIZE.1) as i32;
-const BAT_SIZE: (u32, u32) = (200, 40);
+// TODO: should be part of model? How will window resize work?
+pub const WORLD_WIDTH: u32 = 1600;
+pub const WORLD_HEIGHT: u32 = 1200;
+
+const BAT_WIDTH: u32 = 200;
+const BAT_HEIGHT: u32 = 40;
+
 const BAT_MOVE_INCREMENT: i32 = 50;
 
 pub struct Model {
-    pub x: i32,
-    pub y: i32,
-    pub width: u32,
-    pub height: u32,
+    pub bat: Shape,
+    pub ball: Shape,
 }
 
 impl Model {
-    pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
-        Model {
-            x,
-            y,
-            width,
-            height,
-        }
+    pub fn new(bat: Shape, ball: Shape) -> Self {
+        Model { bat, ball }
     }
 }
 
 pub fn initialize() -> Model {
     Model {
-        x: START_POSITION_X,
-        y: START_POSITION_Y,
-        width: BAT_SIZE.0,
-        height: BAT_SIZE.1,
+        bat: Shape::new(
+            (WORLD_WIDTH + BAT_WIDTH) as i32 / 2,
+            (WORLD_HEIGHT - 2 * BAT_HEIGHT) as i32,
+            BAT_WIDTH,
+            BAT_HEIGHT,
+        ),
+        ball: Shape::new(0, 0, 0, 0),
     }
 }
 
@@ -40,20 +41,28 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
     match action {
         Action::Left => {
             // println!("Left");
-            Some(move_center_position(
-                original,
-                (-BAT_MOVE_INCREMENT, 0),
-                BAT_SIZE,
-                WINDOW_SIZE,
+            Some(Model::new(
+                move_center_position(
+                    &original.bat,
+                    -BAT_MOVE_INCREMENT,
+                    0,
+                    WORLD_WIDTH,
+                    WORLD_HEIGHT,
+                ),
+                Shape::make_copy(&original.ball),
             ))
         }
         Action::Right => {
             // println!("Right");
-            Some(move_center_position(
-                original,
-                (BAT_MOVE_INCREMENT, 0),
-                BAT_SIZE,
-                WINDOW_SIZE,
+            Some(Model::new(
+                move_center_position(
+                    &original.bat,
+                    BAT_MOVE_INCREMENT,
+                    0,
+                    WORLD_WIDTH,
+                    WORLD_HEIGHT,
+                ),
+                Shape::make_copy(&original.ball),
             ))
         }
         _ => Option::None,
@@ -61,23 +70,22 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
 }
 
 fn move_center_position(
-    from: &Model,
-    offset: (i32, i32),
-    shape_size: (u32, u32),
-    window_size: (u32, u32),
-) -> Model {
-    let (dx, dy) = offset;
+    original: &Shape,
+    dx: i32,
+    dy: i32,
+    world_width: u32,
+    world_height: u32,
+) -> Shape {
+    let x_min: i32 = (original.width / 2) as i32;
+    let x_max: i32 = (world_width - (original.width / 2)) as i32;
 
-    let x_min: i32 = (shape_size.0 / 2) as i32;
-    let x_max: i32 = (window_size.0 - (shape_size.0 / 2)) as i32;
+    let y_min: i32 = (original.height / 2) as i32;
+    let y_max: i32 = (world_height - (original.height / 2)) as i32;
 
-    let y_min: i32 = (shape_size.1 / 2) as i32;
-    let y_max: i32 = (window_size.1 - (shape_size.1 / 2)) as i32;
-
-    Model::new(
-        clamp(from.x + dx, x_min, x_max),
-        clamp(from.y + dy, y_min, y_max),
-        BAT_SIZE.0,
-        BAT_SIZE.1,
+    Shape::new(
+        clamp(original.x + dx, x_min, x_max),
+        clamp(original.y + dy, y_min, y_max),
+        original.width,
+        original.height,
     )
 }
