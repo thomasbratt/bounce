@@ -56,11 +56,11 @@ impl Dispatcher {
             match self.interval {
                 Some(x) => {
                     if Instant::now() >= timer_action_at {
-                        timer_action_at += x;
                         if let Some(new_model) = update_model(Action::Timer, &model) {
                             model = new_model;
                             render(&mut self.canvas, &model);
                         }
+                        timer_action_at = Instant::now() + x;
                     }
                 }
                 None => {}
