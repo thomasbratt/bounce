@@ -69,6 +69,10 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
     }
 }
 
+pub fn quit(model: Model) {
+    println!("Quit. Save model etc: {:?}", model);
+}
+
 fn move_center_position(
     original: &Shape,
     dx: i32,

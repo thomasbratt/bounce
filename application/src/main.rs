@@ -13,7 +13,9 @@ pub fn main() {
         model::WORLD_HEIGHT,
         Option::Some(Duration::from_secs(3)),
     ) {
-        Ok(mut dispatcher) => dispatcher.run(model::initialize, model::update, view::render),
+        Ok(mut dispatcher) => {
+            dispatcher.run(model::initialize, model::update, model::quit, view::render)
+        }
         Err(e) => {
             eprintln!("Error: failed to initialize. {}", e);
             std::process::exit(1);
