@@ -41,35 +41,37 @@ impl Dispatcher {
         render(&mut self.canvas, &model);
 
         'running: loop {
-            match self.determine_next_action() {
-                Some(Action::Quit) => {
-                    break 'running;
-                }
-                Some(action) => {
-                    if let Some(new_model) = update_model(action, &model) {
-                        model = new_model;
-                        render(&mut self.canvas, &model);
+            for action in self.next_actions() {
+                match action {
+                    Action::Quit => {
+                        break 'running;
                     }
-                    // Reset the timer *after* update, in case of long running model updates.
-                    if action == Action::Timer {
-                        if let Some(pt) = &self.pull_timer {
-                            pt.reset();
+                    Action::None => {}
+                    action => {
+                        if let Some(new_model) = update_model(action, &model) {
+                            model = new_model;
+                            render(&mut self.canvas, &model);
                         }
                     }
                 }
-                None => {}
+                // Reset the timer *after* update, in case of long running model updates.
+                if action == Action::Timer {
+                    if let Some(pt) = &self.pull_timer {
+                        pt.reset();
+                    }
+                }
             }
         }
 
         cleanup_model(model);
     }
 
-    fn determine_next_action(self: &mut Self) -> Option<Action> {
+    fn next_actions(self: &mut Self) -> Vec<Action> {
         // Pump is required to enable all keyboard notifications (?) and also provides quit notification.
         for event in self.event_pump.wait_timeout_iter(10) {
             if let Event::Quit { .. } = event {
-                Some(Action::Quit)
-            };
+                return vec![Action::Quit];
+            }
         }
 
         // Get key press without delay.
@@ -78,23 +80,24 @@ impl Dispatcher {
             .keyboard_state()
             .pressed_scancodes()
             .filter_map(Keycode::from_scancode)
-            .filter_map(self::extract_action)
+            .map(Dispatcher::extract_action)
             .collect();
         if !actions.is_empty() {
-            // TODO: map multiple key press events to single action
-            Some(actions.first())
+            return actions;
         }
 
         // Produce timer notifications here as well, for ease of consumption by the caller.
-        if self.pull_timer.check() {
-            Some(Action::Timer)
+        if let Some(pt) = &self.pull_timer {
+            if pt.is_elapsed() {
+                self.pull_timer = Some(pt.reset());
+                return vec![Action::Timer];
+            }
         }
 
-        None
+        return vec![Action::None];
     }
 
-    // TODO: make this static
-    fn extract_action(self: &Self, keycode: Keycode) -> Action {
+    fn extract_action(keycode: Keycode) -> Action {
         match keycode {
             Keycode::Left | Keycode::A => Action::Left,
             Keycode::Right | Keycode::D => Action::Right,

@@ -13,19 +13,14 @@ impl PullTimer {
         }
     }
 
-    pub fn check_and_reset(self: &mut Self) -> bool {
-        let result = self.check();
-        if result {
-            self.reset();
-        }
-        result
-    }
-
-    pub fn check(self: &Self) -> bool {
+    pub fn is_elapsed(self: &Self) -> bool {
         Instant::now() >= self.fire_at
     }
 
-    pub fn reset(self: &mut Self) {
-        self.fire_at = Instant::now() + self.interval;
+    pub fn reset(self: &Self) -> PullTimer {
+        PullTimer {
+            fire_at: Instant::now() + self.interval,
+            interval: self.interval,
+        }
     }
 }
