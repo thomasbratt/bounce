@@ -11,7 +11,7 @@ pub fn main() {
         "Bouncing Ball",
         model::WORLD_WIDTH,
         model::WORLD_HEIGHT,
-        Option::Some(Duration::from_millis(10)),
+        Duration::from_millis(10),
     ) {
         Ok(mut dispatcher) => {
             dispatcher.run(model::initialize, model::update, model::quit, view::render)

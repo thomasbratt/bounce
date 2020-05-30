@@ -10,7 +10,7 @@ pub fn initialize(
     title: &str,
     width: u32,
     height: u32,
-    interval: Option<Duration>,
+    interval: Duration,
 ) -> Result<Dispatcher, FrameworkError> {
     // TODO: more errors
     let sdl_context = sdl2::init().unwrap();

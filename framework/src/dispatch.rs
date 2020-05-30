@@ -8,20 +8,17 @@ use sdl2::render::WindowCanvas;
 use sdl2::EventPump;
 
 use crate::action::Action;
-use crate::pull_timer::PullTimer;
+use crate::polltimer::PollTimer;
 
 pub struct Dispatcher {
     canvas: WindowCanvas,
     event_pump: EventPump,
-    pull_timer: Option<PullTimer>,
+    pull_timer: PollTimer,
 }
 
 impl Dispatcher {
-    pub fn new(canvas: WindowCanvas, event_pump: EventPump, interval: Option<Duration>) -> Self {
-        let pull_timer = match interval {
-            Some(i) => Some(PullTimer::new(i)),
-            None => None,
-        };
+    pub fn new(canvas: WindowCanvas, event_pump: EventPump, interval: Duration) -> Self {
+        let pull_timer = PollTimer::new(interval);
         Dispatcher {
             canvas,
             event_pump,
@@ -60,35 +57,31 @@ impl Dispatcher {
     }
 
     fn next_actions(self: &mut Self) -> Vec<Action> {
-        // Pump is required to enable all keyboard notifications (?) and also provides quit notification.
-        for event in self.event_pump.wait_timeout_iter(1) {
-            if let Event::Quit { .. } = event {
+        return if self.pull_timer.is_elapsed() {
+            self.pull_timer = self.pull_timer.make_next();
+
+            if let Some(Event::Quit { .. }) = self.event_pump.poll_event() {
                 return vec![Action::Quit];
             }
-        }
 
-        if let Some(pt) = &self.pull_timer {
-            if pt.is_elapsed() {
-                self.pull_timer = Some(pt.make_next());
+            // Get key press without delay.
+            let actions: Vec<Action> = self
+                .event_pump
+                .keyboard_state()
+                .pressed_scancodes()
+                .filter_map(Keycode::from_scancode)
+                .filter_map(Dispatcher::extract_action)
+                .collect();
 
-                // Get key press without delay.
-                let actions: Vec<Action> = self
-                    .event_pump
-                    .keyboard_state()
-                    .pressed_scancodes()
-                    .filter_map(Keycode::from_scancode)
-                    .filter_map(Dispatcher::extract_action)
-                    .collect();
-
-                if actions.is_empty() {
-                    return vec![Action::Timer];
-                }
-
-                return actions;
+            if actions.is_empty() {
+                return vec![Action::Timer];
+            } else {
+                actions
             }
-        }
-
-        return vec![Action::None];
+        } else {
+            ::std::thread::sleep(self.pull_timer.remaining());
+            vec![Action::None]
+        };
     }
 
     fn extract_action(keycode: Keycode) -> Option<Action> {
