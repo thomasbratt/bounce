@@ -54,12 +54,6 @@ impl Dispatcher {
                         }
                     }
                 }
-                // Reset the timer *after* update, in case of long running model updates.
-                if action == Action::Timer {
-                    if let Some(pt) = &self.pull_timer {
-                        pt.reset();
-                    }
-                }
             }
         }
 
@@ -68,30 +62,34 @@ impl Dispatcher {
 
     fn next_actions(self: &mut Self) -> Vec<Action> {
         // Pump is required to enable all keyboard notifications (?) and also provides quit notification.
-        for event in self.event_pump.wait_timeout_iter(10) {
+        for event in self.event_pump.wait_timeout_iter(1) {
             if let Event::Quit { .. } = event {
                 return vec![Action::Quit];
             }
         }
 
+        let mut results: Vec<Action> = vec![];
+
+        // Produce timer notifications here as well, for ease of consumption by the caller.
+        if let Some(pt) = &self.pull_timer {
+            if pt.is_elapsed() {
+                self.pull_timer = Some(pt.make_next());
+                results.push(Action::Timer);
+            }
+        }
+
         // Get key press without delay.
-        let actions: Vec<Action> = self
+        let mut actions: Vec<Action> = self
             .event_pump
             .keyboard_state()
             .pressed_scancodes()
             .filter_map(Keycode::from_scancode)
             .map(Dispatcher::extract_action)
             .collect();
-        if !actions.is_empty() {
-            return actions;
-        }
 
-        // Produce timer notifications here as well, for ease of consumption by the caller.
-        if let Some(pt) = &self.pull_timer {
-            if pt.is_elapsed() {
-                self.pull_timer = Some(pt.reset());
-                return vec![Action::Timer];
-            }
+        results.append(actions.as_mut());
+        if !results.is_empty() {
+            return results;
         }
 
         return vec![Action::None];

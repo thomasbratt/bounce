@@ -14,7 +14,7 @@ const BAT_HEIGHT: u32 = 40;
 const BAT_MOVE_INCREMENT: i32 = 50;
 
 const BALL_RADIUS: u32 = 32;
-const BALL_MOVE_INCREMENT: i32 = 16;
+const BALL_MOVE_INCREMENT: i32 = 8;
 
 #[derive(Debug)]
 pub struct Model {

@@ -13,13 +13,13 @@ impl PullTimer {
         }
     }
 
-    pub fn is_elapsed(self: &Self) -> bool {
+    pub fn is_elapsed(&self) -> bool {
         Instant::now() >= self.fire_at
     }
 
-    pub fn reset(self: &Self) -> PullTimer {
+    pub fn make_next(&self) -> PullTimer {
         PullTimer {
-            fire_at: Instant::now() + self.interval,
+            fire_at: self.fire_at + self.interval,
             interval: self.interval,
         }
     }
