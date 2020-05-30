@@ -44,7 +44,6 @@ impl Dispatcher {
                         cleanup_model(model);
                         return;
                     }
-                    Action::None => {}
                     action => {
                         if let Some(new_model) = update_model(action, &model) {
                             model = new_model;
@@ -57,31 +56,32 @@ impl Dispatcher {
     }
 
     fn next_actions(self: &mut Self) -> Vec<Action> {
-        return if self.pull_timer.is_elapsed() {
-            self.pull_timer = self.pull_timer.make_next();
+        loop {
+            if self.pull_timer.is_elapsed() {
+                self.pull_timer = self.pull_timer.reset();
 
-            if let Some(Event::Quit { .. }) = self.event_pump.poll_event() {
-                return vec![Action::Quit];
-            }
+                if let Some(Event::Quit { .. }) = self.event_pump.poll_event() {
+                    return vec![Action::Quit];
+                }
 
-            // Get key press without delay.
-            let actions: Vec<Action> = self
-                .event_pump
-                .keyboard_state()
-                .pressed_scancodes()
-                .filter_map(Keycode::from_scancode)
-                .filter_map(Dispatcher::extract_action)
-                .collect();
+                // Get key press without delay.
+                let actions: Vec<Action> = self
+                    .event_pump
+                    .keyboard_state()
+                    .pressed_scancodes()
+                    .filter_map(Keycode::from_scancode)
+                    .filter_map(Dispatcher::extract_action)
+                    .collect();
 
-            if actions.is_empty() {
-                return vec![Action::Timer];
+                return if actions.is_empty() {
+                    vec![Action::Timer]
+                } else {
+                    actions
+                };
             } else {
-                actions
+                ::std::thread::sleep(self.pull_timer.remaining());
             }
-        } else {
-            ::std::thread::sleep(self.pull_timer.remaining());
-            vec![Action::None]
-        };
+        }
     }
 
     fn extract_action(keycode: Keycode) -> Option<Action> {

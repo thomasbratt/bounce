@@ -26,7 +26,7 @@ impl PollTimer {
         }
     }
 
-    pub fn make_next(&self) -> PollTimer {
+    pub fn reset(&self) -> PollTimer {
         PollTimer {
             fire_at: self.fire_at + self.interval,
             interval: self.interval,

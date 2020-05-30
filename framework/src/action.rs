@@ -1,6 +1,5 @@
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub enum Action {
-    None,
     Start,
     Timer,
     Left,
