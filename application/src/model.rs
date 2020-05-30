@@ -46,6 +46,14 @@ pub fn initialize() -> Model {
 }
 
 pub fn update(action: Action, original: &Model) -> Option<Model> {
+    let updated_ball = move_center_position(
+        &original.ball,
+        0,
+        BALL_MOVE_INCREMENT,
+        WORLD_WIDTH,
+        WORLD_HEIGHT,
+    );
+
     match action {
         Action::Left => {
             // println!("Left");
@@ -57,7 +65,7 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
                     WORLD_WIDTH,
                     WORLD_HEIGHT,
                 ),
-                Shape::make_copy(&original.ball),
+                updated_ball,
             ))
         }
         Action::Right => {
@@ -70,20 +78,10 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
                     WORLD_WIDTH,
                     WORLD_HEIGHT,
                 ),
-                Shape::make_copy(&original.ball),
+                updated_ball,
             ))
         }
-        Action::Timer => Some(Model::new(
-            Shape::make_copy(&original.bat),
-            move_center_position(
-                &original.ball,
-                0,
-                BALL_MOVE_INCREMENT,
-                WORLD_WIDTH,
-                WORLD_HEIGHT,
-            ),
-        )),
-        _ => Option::None,
+        _ => Some(Model::new(Shape::make_copy(&original.bat), updated_ball)),
     }
 }
 

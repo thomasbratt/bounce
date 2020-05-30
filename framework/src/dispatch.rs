@@ -40,11 +40,12 @@ impl Dispatcher {
 
         render(&mut self.canvas, &model);
 
-        'running: loop {
+        loop {
             for action in self.next_actions() {
                 match action {
                     Action::Quit => {
-                        break 'running;
+                        cleanup_model(model);
+                        return;
                     }
                     Action::None => {}
                     action => {
@@ -56,8 +57,6 @@ impl Dispatcher {
                 }
             }
         }
-
-        cleanup_model(model);
     }
 
     fn next_actions(self: &mut Self) -> Vec<Action> {
@@ -68,39 +67,36 @@ impl Dispatcher {
             }
         }
 
-        let mut results: Vec<Action> = vec![];
-
-        // Produce timer notifications here as well, for ease of consumption by the caller.
         if let Some(pt) = &self.pull_timer {
             if pt.is_elapsed() {
                 self.pull_timer = Some(pt.make_next());
-                results.push(Action::Timer);
+
+                // Get key press without delay.
+                let actions: Vec<Action> = self
+                    .event_pump
+                    .keyboard_state()
+                    .pressed_scancodes()
+                    .filter_map(Keycode::from_scancode)
+                    .filter_map(Dispatcher::extract_action)
+                    .collect();
+
+                if actions.is_empty() {
+                    return vec![Action::Timer];
+                }
+
+                return actions;
             }
-        }
-
-        // Get key press without delay.
-        let mut actions: Vec<Action> = self
-            .event_pump
-            .keyboard_state()
-            .pressed_scancodes()
-            .filter_map(Keycode::from_scancode)
-            .map(Dispatcher::extract_action)
-            .collect();
-
-        results.append(actions.as_mut());
-        if !results.is_empty() {
-            return results;
         }
 
         return vec![Action::None];
     }
 
-    fn extract_action(keycode: Keycode) -> Action {
+    fn extract_action(keycode: Keycode) -> Option<Action> {
         match keycode {
-            Keycode::Left | Keycode::A => Action::Left,
-            Keycode::Right | Keycode::D => Action::Right,
-            Keycode::Escape => Action::Quit,
-            _ => Action::None,
+            Keycode::Left | Keycode::A => Some(Action::Left),
+            Keycode::Right | Keycode::D => Some(Action::Right),
+            Keycode::Escape => Some(Action::Quit),
+            _ => None,
         }
     }
 }
