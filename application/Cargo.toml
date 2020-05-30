@@ -8,4 +8,8 @@ edition = "2018"
 
 [dependencies]
 framework = { path = "../framework" }
-sdl2 = "0.34"
+
+[dependencies.sdl2]
+version = "0.34"
+default-features = false
+features = ["gfx", "mixer", "ttf"]

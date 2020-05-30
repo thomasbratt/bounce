@@ -11,8 +11,10 @@ pub const WORLD_HEIGHT: u32 = 1200;
 
 const BAT_WIDTH: u32 = 200;
 const BAT_HEIGHT: u32 = 40;
-
 const BAT_MOVE_INCREMENT: i32 = 50;
+
+const BALL_RADIUS: u32 = 32;
+const BALL_MOVE_INCREMENT: i32 = 16;
 
 #[derive(Debug)]
 pub struct Model {
@@ -34,7 +36,12 @@ pub fn initialize() -> Model {
             BAT_WIDTH,
             BAT_HEIGHT,
         ),
-        ball: Shape::new(0, 0, 0, 0),
+        ball: Shape::new(
+            (WORLD_WIDTH / 2 - BALL_RADIUS) as i32,
+            BALL_RADIUS as i32,
+            2 * BALL_RADIUS,
+            2 * BALL_RADIUS,
+        ),
     }
 }
 
@@ -66,6 +73,16 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
                 Shape::make_copy(&original.ball),
             ))
         }
+        Action::Timer => Some(Model::new(
+            Shape::make_copy(&original.bat),
+            move_center_position(
+                &original.ball,
+                0,
+                BALL_MOVE_INCREMENT,
+                WORLD_WIDTH,
+                WORLD_HEIGHT,
+            ),
+        )),
         _ => Option::None,
     }
 }
