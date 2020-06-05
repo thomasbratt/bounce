@@ -1,6 +1,7 @@
 use crate::math;
 use crate::shape;
 
+use crate::behavior::Behavior;
 use framework::Action;
 use math::clamp;
 use shape::is_intersection;
@@ -19,18 +20,24 @@ const BALL_MOVE_INCREMENT: i32 = 8;
 
 #[derive(Debug)]
 pub struct Model {
-    pub bat: Shape,
-    pub ball: Shape,
+    pub index_bat: usize,
+    pub index_ball: usize,
+    pub shapes: Vec<Shape>,
 }
 
 impl Model {
-    pub fn new(bat: Shape, ball: Shape) -> Self {
-        Model { bat, ball }
+    pub fn new(index_bat: usize, index_ball: usize, shapes: Vec<Shape>) -> Self {
+        Model {
+            index_bat,
+            index_ball,
+            shapes,
+        }
     }
 }
 
 pub fn initialize() -> Model {
-    Model::new(
+    let shapes = vec![
+        // Bat
         Shape::new(
             (WORLD_WIDTH + BAT_WIDTH) as i32 / 2,
             (WORLD_HEIGHT - 2 * BAT_HEIGHT) as i32,
@@ -38,7 +45,9 @@ pub fn initialize() -> Model {
             BAT_HEIGHT,
             0,
             0,
+            Behavior::HORIZONTAL_ONLY,
         ),
+        // Ball
         Shape::new(
             (WORLD_WIDTH / 2 - BALL_RADIUS) as i32,
             BALL_RADIUS as i32,
@@ -46,11 +55,53 @@ pub fn initialize() -> Model {
             2 * BALL_RADIUS,
             0,
             BALL_MOVE_INCREMENT,
+            Behavior::MOVABLE,
         ),
-    )
+        // Top
+        Shape::new(0, 0, WORLD_WIDTH, 1, 0, 0, Behavior::FIXED),
+        // Right
+        Shape::new(
+            WORLD_WIDTH as i32,
+            0,
+            1,
+            WORLD_HEIGHT,
+            0,
+            0,
+            Behavior::FIXED,
+        ),
+        // Bottom
+        Shape::new(
+            0,
+            WORLD_HEIGHT as i32,
+            WORLD_WIDTH,
+            1,
+            0,
+            0,
+            Behavior::FIXED,
+        ),
+        // Left
+        Shape::new(0, 0, 1, WORLD_HEIGHT, 0, 0, Behavior::FIXED),
+    ];
+
+    Model::new(0, 1, shapes)
 }
 
 pub fn update(action: Action, original: &Model) -> Option<Model> {
+
+    // update ball dx,dy based on action
+
+    // update moveable_before -> moveable_after
+
+    // detect collisions (moveable_after, fixed) -> collisions:Vec<>
+
+    // collision: (index_from, index_to)
+    // for each collision, determine interface (top,left,right.bottom) and reflect dx,dy separately as required
+    // moveable_after_post_collision
+
+    // update moveable_after -> moveable_final
+
+    // update model with final movae
+
     let new_bat = match action {
         Action::Left => original.bat.velocity(-BAT_MOVE_INCREMENT, 0).move_step(),
         Action::Right => original.bat.velocity(BAT_MOVE_INCREMENT, 0).move_step(),

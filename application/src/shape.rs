@@ -1,3 +1,4 @@
+use crate::behavior::Behavior;
 use std::cmp;
 
 #[derive(Copy, Clone, Debug)]
@@ -8,10 +9,19 @@ pub struct Shape {
     pub height: u32,
     pub dx: i32,
     pub dy: i32,
+    pub behavior: Behavior,
 }
 
 impl Shape {
-    pub fn new(x: i32, y: i32, width: u32, height: u32, dx: i32, dy: i32) -> Self {
+    pub fn new(
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+        dx: i32,
+        dy: i32,
+        behavior: Behavior,
+    ) -> Self {
         Shape {
             x,
             y,
@@ -19,15 +29,32 @@ impl Shape {
             height,
             dx,
             dy,
+            behavior,
         }
     }
 
     pub fn velocity(self: &Self, new_dx: i32, new_dy: i32) -> Self {
-        Shape::new(self.x, self.y, self.width, self.height, new_dx, new_dy)
+        Shape::new(
+            self.x,
+            self.y,
+            self.width,
+            self.height,
+            new_dx,
+            new_dy,
+            self.behavior,
+        )
     }
 
     pub fn move_to(self: &Self, new_x: i32, new_y: i32) -> Self {
-        Shape::new(new_x, new_y, self.width, self.height, self.dx, self.dy)
+        Shape::new(
+            new_x,
+            new_y,
+            self.width,
+            self.height,
+            self.dx,
+            self.dy,
+            self.behavior,
+        )
     }
 
     pub fn move_step(self: &Self) -> Self {
@@ -38,6 +65,7 @@ impl Shape {
             self.height,
             self.dx,
             self.dy,
+            self.behavior,
         )
     }
 }

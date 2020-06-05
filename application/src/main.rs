@@ -1,6 +1,7 @@
 use framework::initialize;
 use std::time::Duration;
 
+mod behavior;
 mod math;
 mod model;
 mod shape;
