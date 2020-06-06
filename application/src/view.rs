@@ -11,8 +11,8 @@ use crate::shape;
 pub fn render(canvas: &mut WindowCanvas, model: &model::Model) {
     canvas.set_draw_color(Color::BLACK);
     canvas.clear();
-    render_bat(canvas, &model.bat);
-    render_ball(canvas, &model.ball);
+    render_bat(canvas, &model.shapes.get(model.index_bat).unwrap());
+    render_ball(canvas, &model.shapes.get(model.index_ball).unwrap());
     canvas.present();
 }
 

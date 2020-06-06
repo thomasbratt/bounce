@@ -1,7 +1,7 @@
-use crate::behavior::Behavior;
+use crate::behavior::Movement;
 use std::cmp;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Shape {
     pub x: i32,
     pub y: i32,
@@ -9,7 +9,7 @@ pub struct Shape {
     pub height: u32,
     pub dx: i32,
     pub dy: i32,
-    pub behavior: Behavior,
+    pub behavior: Option<Movement>,
 }
 
 impl Shape {
@@ -20,7 +20,7 @@ impl Shape {
         height: u32,
         dx: i32,
         dy: i32,
-        behavior: Behavior,
+        behavior: Option<Movement>,
     ) -> Self {
         Shape {
             x,

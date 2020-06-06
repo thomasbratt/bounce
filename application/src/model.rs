@@ -1,7 +1,8 @@
 use crate::math;
 use crate::shape;
 
-use crate::behavior::Behavior;
+use crate::behavior::Movement;
+use crate::behavior::Movement::All;
 use framework::Action;
 use math::clamp;
 use shape::is_intersection;
@@ -45,7 +46,7 @@ pub fn initialize() -> Model {
             BAT_HEIGHT,
             0,
             0,
-            Behavior::HORIZONTAL_ONLY,
+            Some(Movement::Horizontal),
         ),
         // Ball
         Shape::new(
@@ -55,44 +56,44 @@ pub fn initialize() -> Model {
             2 * BALL_RADIUS,
             0,
             BALL_MOVE_INCREMENT,
-            Behavior::MOVABLE,
+            Some(Movement::All),
         ),
         // Top
-        Shape::new(0, 0, WORLD_WIDTH, 1, 0, 0, Behavior::FIXED),
+        Shape::new(0, 0, WORLD_WIDTH, 1, 0, 0, None),
         // Right
-        Shape::new(
-            WORLD_WIDTH as i32,
-            0,
-            1,
-            WORLD_HEIGHT,
-            0,
-            0,
-            Behavior::FIXED,
-        ),
+        Shape::new(WORLD_WIDTH as i32, 0, 1, WORLD_HEIGHT, 0, 0, None),
         // Bottom
-        Shape::new(
-            0,
-            WORLD_HEIGHT as i32,
-            WORLD_WIDTH,
-            1,
-            0,
-            0,
-            Behavior::FIXED,
-        ),
+        Shape::new(0, WORLD_HEIGHT as i32, WORLD_WIDTH, 1, 0, 0, None),
         // Left
-        Shape::new(0, 0, 1, WORLD_HEIGHT, 0, 0, Behavior::FIXED),
+        Shape::new(0, 0, 1, WORLD_HEIGHT, 0, 0, None),
     ];
 
     Model::new(0, 1, shapes)
 }
 
 pub fn update(action: Action, original: &Model) -> Option<Model> {
+    let original_bat = original.shapes.get(original.index_bat).unwrap();
 
-    // update ball dx,dy based on action
+    // update bat dx,dy based on action
+    let new_bat = match action {
+        Action::Left => original_bat.velocity(-BAT_MOVE_INCREMENT, 0),
+        Action::Right => original_bat.velocity(BAT_MOVE_INCREMENT, 0),
+        _ => *original_bat,
+    };
 
-    // update moveable_before -> moveable_after
+    // find collisions between moveable shapes and all others
+    let mut collisions: Vec<(&Shape, &Shape)> = vec![];
+    for current in original.shapes.iter().filter(|x| x.behavior.is_some()) {
+        for other in original.shapes.iter().filter(|x| x != &current) {
+            if is_intersection(&current, &other) {
+                collisions.push((current, other))
+            }
+        }
+    }
 
-    // detect collisions (moveable_after, fixed) -> collisions:Vec<>
+    for x in collisions {
+        println!("collision: {:?}", x);
+    }
 
     // collision: (index_from, index_to)
     // for each collision, determine interface (top,left,right.bottom) and reflect dx,dy separately as required
@@ -102,24 +103,19 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
 
     // update model with final movae
 
-    let new_bat = match action {
-        Action::Left => original.bat.velocity(-BAT_MOVE_INCREMENT, 0).move_step(),
-        Action::Right => original.bat.velocity(BAT_MOVE_INCREMENT, 0).move_step(),
-        _ => original.bat,
-    };
-
-    let is_hit = is_intersection(&original.bat, &original.ball);
-
-    let (new_ball_dx, new_ball_dy) = match action {
-        a if a == Action::Left && is_hit => (-BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT),
-        a if a == Action::Right && is_hit => (BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT),
-        _ => (original.ball.dx, original.ball.dy),
-    };
-    let new_ball = original.ball.velocity(new_ball_dx, new_ball_dy).move_step();
-
-    Some(Model::new(new_bat, new_ball))
+    //
+    // let (new_ball_dx, new_ball_dy) = match action {
+    //     a if a == Action::Left && is_hit => (-BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT),
+    //     a if a == Action::Right && is_hit => (BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT),
+    //     _ => (original.ball.dx, original.ball.dy),
+    // };
+    // let new_ball = original.ball.velocity(new_ball_dx, new_ball_dy).move_step();
+    //
+    // Some(Model::new(new_bat, new_ball))
 
     // TODO: check for miss when ball goes off screen
+
+    None
 }
 
 pub fn quit(model: Model) {
