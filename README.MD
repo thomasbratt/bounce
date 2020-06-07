@@ -45,6 +45,7 @@ update:
             for each j in occupy[oc] where i != j:
                 o = shape[j]
                 if is_intersection(m,o):
+                    # TODO: invoke callback to allow model to decide effect of collision?
                     # what about moveable/static?
                     m_new = m.update_velocity().update_position()
                     determine_occupancy_updates(m, m_new) -> occupancy_updates

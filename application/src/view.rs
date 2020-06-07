@@ -19,8 +19,8 @@ pub fn render(canvas: &mut WindowCanvas, model: &model::Model) {
 fn render_bat(canvas: &mut WindowCanvas, bat: &shape::Shape) {
     canvas.set_draw_color(Color::WHITE);
     let _ = canvas.fill_rect(Rect::new(
-        bat.x - (bat.width / 2) as i32,
-        bat.y - (bat.height / 2) as i32,
+        (bat.x - (bat.width / 2)) as i32,
+        (bat.y - (bat.height / 2)) as i32,
         bat.width,
         bat.height,
     ));

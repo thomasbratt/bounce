@@ -1,8 +1,9 @@
 use crate::math;
 use crate::shape;
 
-use crate::behavior::Movement;
-use crate::behavior::Movement::All;
+use crate::movement::Movement;
+use crate::movement::Movement::All;
+use crate::occupy::Occupy;
 use framework::Action;
 use math::clamp;
 use shape::is_intersection;
@@ -19,20 +20,41 @@ const BAT_MOVE_INCREMENT: i32 = 25;
 const BALL_RADIUS: u32 = 32;
 const BALL_MOVE_INCREMENT: i32 = 8;
 
+const OCCUPY_BIN_WIDTH: i32 = 8;
+const OCCUPY_BIN_HEIGHT: i32 = 8;
+const OCCUPY_BIN_LINE: i32 = WORLD_WIDTH as i32 / OCCUPY_BIN_WIDTH;
+pub type ShapeIndex = u8;
+
 #[derive(Debug)]
 pub struct Model {
-    pub index_bat: usize,
-    pub index_ball: usize,
-    pub shapes_moveable: Vec<Shape>,
-    pub shapes_fixed: Vec<Shape>,
+    pub index_player: ShapeIndex,
+    pub shapes: Vec<Shape>,
+    pub occupy: Occupy,
+    pub moveables: Vec<ShapeIndex>,
 }
 
 impl Model {
-    pub fn new(index_bat: usize, index_ball: usize, shapes: Vec<Shape>) -> Self {
+    pub fn new(index_player: ShapeIndex, shapes: Vec<Shape>) -> Self {
+        let occupy = Occupy::new(100, 100, WORLD_WIDTH, WORLD_HEIGHT);
+        occupy.initialize(&shapes);
+
+        let moveables = shapes
+            .iter()
+            .enumerate()
+            .filter_map(|(i, s)| {
+                if let Some(_) = s.movement {
+                    Some(i as ShapeIndex)
+                } else {
+                    None
+                }
+            })
+            .collect();
+
         Model {
-            index_bat,
-            index_ball,
+            index_player,
             shapes,
+            occupy,
+            moveables,
         }
     }
 }
@@ -41,8 +63,8 @@ pub fn initialize() -> Model {
     let shapes = vec![
         // Bat
         Shape::new(
-            (WORLD_WIDTH + BAT_WIDTH) as i32 / 2,
-            (WORLD_HEIGHT - 2 * BAT_HEIGHT) as i32,
+            (WORLD_WIDTH + BAT_WIDTH) / 2,
+            WORLD_HEIGHT - 2 * BAT_HEIGHT,
             BAT_WIDTH,
             BAT_HEIGHT,
             0,
@@ -51,8 +73,8 @@ pub fn initialize() -> Model {
         ),
         // Ball
         Shape::new(
-            (WORLD_WIDTH / 2 - BALL_RADIUS) as i32,
-            BALL_RADIUS as i32,
+            WORLD_WIDTH / 2 - BALL_RADIUS,
+            BALL_RADIUS,
             2 * BALL_RADIUS,
             2 * BALL_RADIUS,
             0,
@@ -62,14 +84,14 @@ pub fn initialize() -> Model {
         // Top
         Shape::new(0, 0, WORLD_WIDTH, 1, 0, 0, None),
         // Right
-        Shape::new(WORLD_WIDTH as i32, 0, 1, WORLD_HEIGHT, 0, 0, None),
+        Shape::new(WORLD_WIDTH, 0, 1, WORLD_HEIGHT, 0, 0, None),
         // Bottom
-        Shape::new(0, WORLD_HEIGHT as i32, WORLD_WIDTH, 1, 0, 0, None),
+        Shape::new(0, WORLD_HEIGHT, WORLD_WIDTH, 1, 0, 0, None),
         // Left
         Shape::new(0, 0, 1, WORLD_HEIGHT, 0, 0, None),
     ];
 
-    Model::new(0, 1, shapes)
+    Model::new(0, shapes)
 }
 
 pub fn update(action: Action, original: &Model) -> Option<Model> {
@@ -84,7 +106,7 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
 
     // find collisions between moveable shapes and all others
     let mut collisions: Vec<(&Shape, &Shape)> = vec![];
-    for current in original.shapes.iter().filter(|x| x.behavior.is_some()) {
+    for current in original.shapes.iter().filter(|x| x.movement.is_some()) {
         for other in original.shapes.iter().filter(|x| x != &current) {
             if is_intersection(&current, &other) {
                 collisions.push((current, other))

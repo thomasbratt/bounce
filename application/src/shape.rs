@@ -1,21 +1,21 @@
-use crate::behavior::Movement;
+use crate::movement::Movement;
 use std::cmp;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Shape {
-    pub x: i32,
-    pub y: i32,
+    pub x: u32,
+    pub y: u32,
     pub width: u32,
     pub height: u32,
     pub dx: i32,
     pub dy: i32,
-    pub behavior: Option<Movement>,
+    pub movement: Option<Movement>,
 }
 
 impl Shape {
     pub fn new(
-        x: i32,
-        y: i32,
+        x: u32,
+        y: u32,
         width: u32,
         height: u32,
         dx: i32,
@@ -29,7 +29,7 @@ impl Shape {
             height,
             dx,
             dy,
-            behavior,
+            movement: behavior,
         }
     }
 
@@ -41,11 +41,11 @@ impl Shape {
             self.height,
             new_dx,
             new_dy,
-            self.behavior,
+            self.movement,
         )
     }
 
-    pub fn move_to(self: &Self, new_x: i32, new_y: i32) -> Self {
+    pub fn move_to(self: &Self, new_x: u32, new_y: u32) -> Self {
         Shape::new(
             new_x,
             new_y,
@@ -53,24 +53,25 @@ impl Shape {
             self.height,
             self.dx,
             self.dy,
-            self.behavior,
+            self.movement,
         )
     }
 
     pub fn move_step(self: &Self) -> Self {
         Shape::new(
-            self.x + self.dx,
-            self.y + self.dy,
+            (self.x as i32 + self.dx) as u32,
+            (self.y as i32 + self.dy) as u32,
             self.width,
             self.height,
             self.dx,
             self.dy,
-            self.behavior,
+            self.movement,
         )
     }
 }
 
+// TODO: sort out namespace and write unit tests
 pub(crate) fn is_intersection(s1: &Shape, s2: &Shape) -> bool {
-    cmp::max(s1.x - s2.x, s2.x - s1.x) < (s1.width / 2 + s2.width / 2) as i32
-        && cmp::max(s1.y - s2.y, s2.y - s1.y) < (s1.height / 2 + s2.height / 2) as i32
+    cmp::max(s1.x - s2.x, s2.x - s1.x) < (s1.width / 2 + s2.width / 2)
+        && cmp::max(s1.y - s2.y, s2.y - s1.y) < (s1.height / 2 + s2.height / 2)
 }
