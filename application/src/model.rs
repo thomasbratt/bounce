@@ -23,7 +23,8 @@ const BALL_MOVE_INCREMENT: i32 = 8;
 pub struct Model {
     pub index_bat: usize,
     pub index_ball: usize,
-    pub shapes: Vec<Shape>,
+    pub shapes_moveable: Vec<Shape>,
+    pub shapes_fixed: Vec<Shape>,
 }
 
 impl Model {
