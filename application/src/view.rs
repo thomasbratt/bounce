@@ -11,18 +11,18 @@ use crate::shape;
 pub fn render(canvas: &mut WindowCanvas, model: &model::Model) {
     canvas.set_draw_color(Color::BLACK);
     canvas.clear();
-    render_bat(canvas, &model.shapes.get(model.index_bat).unwrap());
-    render_ball(canvas, &model.shapes.get(model.index_ball).unwrap());
+    render_bat(canvas, &model.bat);
+    render_ball(canvas, &model.ball);
     canvas.present();
 }
 
 fn render_bat(canvas: &mut WindowCanvas, bat: &shape::Shape) {
     canvas.set_draw_color(Color::WHITE);
     let _ = canvas.fill_rect(Rect::new(
-        (bat.x - (bat.width / 2)) as i32,
-        (bat.y - (bat.height / 2)) as i32,
-        bat.width,
-        bat.height,
+        bat.x - (bat.width / 2),
+        bat.y - (bat.height / 2),
+        bat.width as u32,
+        bat.height as u32,
     ));
 }
 

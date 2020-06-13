@@ -1,66 +1,50 @@
-use crate::math;
 use crate::shape;
 
-use crate::movement::Movement;
-use crate::movement::Movement::All;
-use crate::occupy::Occupy;
 use framework::Action;
-use math::clamp;
-use shape::is_intersection;
 use shape::Shape;
 
 // TODO: should be part of model? How will window resize work?
-pub const WORLD_WIDTH: u32 = 1600;
-pub const WORLD_HEIGHT: u32 = 1200;
+pub const WORLD_WIDTH: i32 = 1600;
+pub const WORLD_HEIGHT: i32 = 1200;
 
-const BAT_WIDTH: u32 = 200;
-const BAT_HEIGHT: u32 = 40;
+const BAT_WIDTH: i32 = 200;
+const BAT_HEIGHT: i32 = 40;
 const BAT_MOVE_INCREMENT: i32 = 25;
 
-const BALL_RADIUS: u32 = 32;
+const BALL_RADIUS: i32 = 32;
 const BALL_MOVE_INCREMENT: i32 = 8;
-
-const OCCUPY_BIN_WIDTH: i32 = 8;
-const OCCUPY_BIN_HEIGHT: i32 = 8;
-const OCCUPY_BIN_LINE: i32 = WORLD_WIDTH as i32 / OCCUPY_BIN_WIDTH;
-pub type ShapeIndex = u8;
 
 #[derive(Debug)]
 pub struct Model {
-    pub index_player: ShapeIndex,
-    pub shapes: Vec<Shape>,
-    pub occupy: Occupy,
-    pub moveables: Vec<ShapeIndex>,
+    pub ball: Shape,
+    pub bat: Shape,
+    pub world: Shape,
+    pub score: u32,
 }
 
 impl Model {
-    pub fn new(index_player: ShapeIndex, shapes: Vec<Shape>) -> Self {
-        let occupy = Occupy::new(100, 100, WORLD_WIDTH, WORLD_HEIGHT);
-        occupy.initialize(&shapes);
-
-        let moveables = shapes
-            .iter()
-            .enumerate()
-            .filter_map(|(i, s)| {
-                if let Some(_) = s.movement {
-                    Some(i as ShapeIndex)
-                } else {
-                    None
-                }
-            })
-            .collect();
-
+    pub fn new(ball: Shape, bat: Shape, world: Shape, score: u32) -> Self {
         Model {
-            index_player,
-            shapes,
-            occupy,
-            moveables,
+            ball,
+            bat,
+            world,
+            score,
         }
     }
 }
 
+// TODO: shrink world by 25 in all directions, to avoid bat/ball updates going off screen
 pub fn initialize() -> Model {
-    let shapes = vec![
+    Model::new(
+        // Ball
+        Shape::new(
+            WORLD_WIDTH / 2 - BALL_RADIUS,
+            2 * BALL_RADIUS,
+            2 * BALL_RADIUS,
+            2 * BALL_RADIUS,
+            0,
+            BALL_MOVE_INCREMENT,
+        ),
         // Bat
         Shape::new(
             (WORLD_WIDTH + BAT_WIDTH) / 2,
@@ -69,101 +53,124 @@ pub fn initialize() -> Model {
             BAT_HEIGHT,
             0,
             0,
-            Some(Movement::Horizontal),
         ),
-        // Ball
-        Shape::new(
-            WORLD_WIDTH / 2 - BALL_RADIUS,
-            BALL_RADIUS,
-            2 * BALL_RADIUS,
-            2 * BALL_RADIUS,
-            0,
-            BALL_MOVE_INCREMENT,
-            Some(Movement::All),
-        ),
-        // Top
-        Shape::new(0, 0, WORLD_WIDTH, 1, 0, 0, None),
-        // Right
-        Shape::new(WORLD_WIDTH, 0, 1, WORLD_HEIGHT, 0, 0, None),
-        // Bottom
-        Shape::new(0, WORLD_HEIGHT, WORLD_WIDTH, 1, 0, 0, None),
-        // Left
-        Shape::new(0, 0, 1, WORLD_HEIGHT, 0, 0, None),
-    ];
-
-    Model::new(0, shapes)
+        // World
+        Shape::new(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 0, 0),
+        0,
+    )
 }
 
 pub fn update(action: Action, original: &Model) -> Option<Model> {
-    let original_bat = original.shapes.get(original.index_bat).unwrap();
+    let updated_bat = update_bat(action, original);
 
-    // update bat dx,dy based on action
-    let new_bat = match action {
-        Action::Left => original_bat.velocity(-BAT_MOVE_INCREMENT, 0),
-        Action::Right => original_bat.velocity(BAT_MOVE_INCREMENT, 0),
-        _ => *original_bat,
-    };
-
-    // find collisions between moveable shapes and all others
-    let mut collisions: Vec<(&Shape, &Shape)> = vec![];
-    for current in original.shapes.iter().filter(|x| x.movement.is_some()) {
-        for other in original.shapes.iter().filter(|x| x != &current) {
-            if is_intersection(&current, &other) {
-                collisions.push((current, other))
-            }
+    match update_ball(&updated_bat, original) {
+        BallResult::Hit(updated_ball) => {
+            println!("Hit score:{}", original.score + 1);
+            Some(Model::new(
+                updated_ball,
+                updated_bat,
+                original.world,
+                original.score + 1,
+            ))
+        }
+        BallResult::Move(updated_ball) => Some(Model::new(
+            updated_ball,
+            updated_bat,
+            original.world,
+            original.score,
+        )),
+        BallResult::Miss(_) => {
+            println!("Hit score:{}", original.score);
+            let initialized = initialize();
+            Some(Model::new(
+                initialized.ball,
+                initialized.bat,
+                initialized.world,
+                original.score,
+            ))
         }
     }
+}
 
-    for x in collisions {
-        println!("collision: {:?}", x);
+enum BallResult {
+    Hit(Shape),
+    Miss(Shape),
+    Move(Shape),
+}
+
+fn update_bat(action: Action, original: &Model) -> Shape {
+    let updated_bat = match action {
+        Action::Left => original.bat.velocity(-BAT_MOVE_INCREMENT, 0).move_step(),
+        Action::Right => original.bat.velocity(BAT_MOVE_INCREMENT, 0).move_step(),
+        _ => original.bat.velocity(0, 0),
+    };
+
+    if updated_bat.left() < original.world.left() {
+        updated_bat.velocity(BAT_MOVE_INCREMENT, 0).move_step()
+    } else if updated_bat.right() > original.world.right() {
+        updated_bat.velocity(-BAT_MOVE_INCREMENT, 0).move_step()
+    } else {
+        updated_bat
     }
+}
 
-    // collision: (index_from, index_to)
-    // for each collision, determine interface (top,left,right.bottom) and reflect dx,dy separately as required
-    // moveable_after_post_collision
+fn update_ball(updated_bat: &Shape, original: &Model) -> BallResult {
+    // Move ball
+    let updated_ball: Shape = original.ball.move_step();
 
-    // update moveable_after -> moveable_final
+    // Bat hits ball?
+    let is_hit = shape::is_intersection(&updated_bat, &updated_ball);
+    // println!("is_hit: {}", is_hit);
+    let hit: Shape = if is_hit {
+        if updated_bat.dx > 0 {
+            updated_ball
+                .velocity(BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT)
+                .move_step()
+        } else if updated_bat.dx < 0 {
+            updated_ball
+                .velocity(-BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT)
+                .move_step()
+        } else {
+            updated_ball
+                .velocity(updated_ball.dx, -BALL_MOVE_INCREMENT)
+                .move_step()
+        }
+    } else {
+        updated_ball
+    };
 
-    // update model with final movae
+    // Ball hits horizontal wall?
+    let collided_horizontally = if hit.left() < original.world.left() {
+        hit.velocity(BALL_MOVE_INCREMENT, hit.dy).move_step()
+    } else if hit.right() > original.world.right() {
+        hit.velocity(-BALL_MOVE_INCREMENT, hit.dy).move_step()
+    } else {
+        hit
+    };
 
-    //
-    // let (new_ball_dx, new_ball_dy) = match action {
-    //     a if a == Action::Left && is_hit => (-BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT),
-    //     a if a == Action::Right && is_hit => (BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT),
-    //     _ => (original.ball.dx, original.ball.dy),
-    // };
-    // let new_ball = original.ball.velocity(new_ball_dx, new_ball_dy).move_step();
-    //
-    // Some(Model::new(new_bat, new_ball))
-
-    // TODO: check for miss when ball goes off screen
-
-    None
+    // Ball reaches top of world?
+    if collided_horizontally.top() < original.world.top() {
+        println!("ball reaches top");
+        BallResult::Move(
+            collided_horizontally
+                .velocity(collided_horizontally.dx, BALL_MOVE_INCREMENT)
+                .move_step(),
+        )
+    } else if collided_horizontally.bottom() > original.world.bottom() {
+        println!(
+            "ball reaches bottom: ball:{:?} world:{:?}",
+            collided_horizontally, original.world
+        );
+        BallResult::Miss(collided_horizontally)
+    } else if is_hit {
+        println!("ball hit");
+        BallResult::Hit(collided_horizontally)
+    } else {
+        // println!("ball moves freely");
+        BallResult::Move(collided_horizontally)
+    }
 }
 
 pub fn quit(model: Model) {
-    println!("Quit. Save model etc: {:?}", model);
+    println!("Quit. Final model: {:?}", model);
 }
-
-// fn move_center_position(
-//     original: &Shape,
-//     dx: i32,
-//     dy: i32,
-//     world_width: u32,
-//     world_height: u32,
-// ) -> Shape {
-//     let x_min: i32 = (original.width / 2) as i32;
-//     let x_max: i32 = (world_width - (original.width / 2)) as i32;
-//
-//     let y_min: i32 = (original.height / 2) as i32;
-//     let y_max: i32 = (world_height - (original.height / 2)) as i32;
-//
-//     Shape::new(
-//         clamp(original.x + dx, x_min, x_max),
-//         clamp(original.y + dy, y_min, y_max),
-//         original.width,
-//         original.height,
-//         original.dx,
-//         original.dy
-//     )
-// }
