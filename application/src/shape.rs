@@ -1,5 +1,3 @@
-use std::cmp;
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Shape {
     pub x: i32,

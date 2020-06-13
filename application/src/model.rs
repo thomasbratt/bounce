@@ -3,6 +3,10 @@ use crate::shape;
 use framework::Action;
 use shape::Shape;
 
+use rand::prelude::*;
+use rand_distr::{Distribution, Normal};
+use std::cmp::Ordering;
+
 // TODO: should be part of model? How will window resize work?
 pub const WORLD_WIDTH: i32 = 1600;
 pub const WORLD_HEIGHT: i32 = 1200;
@@ -13,6 +17,7 @@ const BAT_MOVE_INCREMENT: i32 = 25;
 
 const BALL_RADIUS: i32 = 32;
 const BALL_MOVE_INCREMENT: i32 = 8;
+const BALL_MOVE_JITTER: i32 = 3;
 
 #[derive(Debug)]
 pub struct Model {
@@ -20,20 +25,30 @@ pub struct Model {
     pub bat: Shape,
     pub world: Shape,
     pub score: u32,
+    pub rng: ThreadRng,
+    pub normal: Normal<f32>,
 }
 
 impl Model {
-    pub fn new(ball: Shape, bat: Shape, world: Shape, score: u32) -> Self {
+    pub fn new(
+        ball: Shape,
+        bat: Shape,
+        world: Shape,
+        score: u32,
+        rng: ThreadRng,
+        normal: Normal<f32>,
+    ) -> Self {
         Model {
             ball,
             bat,
             world,
             score,
+            rng,
+            normal,
         }
     }
 }
 
-// TODO: shrink world by 25 in all directions, to avoid bat/ball updates going off screen
 pub fn initialize() -> Model {
     Model::new(
         // Ball
@@ -56,37 +71,46 @@ pub fn initialize() -> Model {
         ),
         // World
         Shape::new(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 0, 0),
+        // Score
         0,
+        rand::thread_rng(),
+        Normal::new(0.0, BALL_MOVE_JITTER as f32).unwrap(),
     )
 }
 
-pub fn update(action: Action, original: &Model) -> Option<Model> {
-    let updated_bat = update_bat(action, original);
+pub fn update(action: Action, model: &mut Model) -> Option<Model> {
+    let updated_bat = update_bat(action, model);
 
-    match update_ball(&updated_bat, original) {
+    match update_ball(&updated_bat, model) {
         BallResult::Hit(updated_ball) => {
-            println!("Hit score:{}", original.score + 1);
+            println!("Hit score:{}", model.score + 1);
             Some(Model::new(
                 updated_ball,
                 updated_bat,
-                original.world,
-                original.score + 1,
+                model.world,
+                model.score + 1,
+                model.rng,
+                model.normal,
             ))
         }
         BallResult::Move(updated_ball) => Some(Model::new(
             updated_ball,
             updated_bat,
-            original.world,
-            original.score,
+            model.world,
+            model.score,
+            model.rng,
+            model.normal,
         )),
         BallResult::Miss(_) => {
-            println!("Miss score:{}", original.score);
+            println!("Miss score:{}", model.score);
             let initialized = initialize();
             Some(Model::new(
                 initialized.ball,
                 initialized.bat,
                 initialized.world,
-                original.score,
+                model.score,
+                model.rng,
+                model.normal,
             ))
         }
     }
@@ -114,25 +138,25 @@ enum BallResult {
     Move(Shape),
 }
 
-fn update_ball(updated_bat: &Shape, original: &Model) -> BallResult {
+fn update_ball(updated_bat: &Shape, original: &mut Model) -> BallResult {
     // Move ball
     let updated_ball: Shape = original.ball.move_step();
 
     // Ball hits bat?
     let is_hit = shape::is_intersection(&updated_bat, &updated_ball);
+
+    // Update ball if hit
     let hit: Shape = if is_hit {
-        if updated_bat.dx > 0 {
-            updated_ball
+        match updated_bat.dx.cmp(&0) {
+            Ordering::Greater => updated_ball
                 .velocity(BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT)
-                .move_step()
-        } else if updated_bat.dx < 0 {
-            updated_ball
+                .move_step(),
+            Ordering::Less => updated_ball
                 .velocity(-BALL_MOVE_INCREMENT, -BALL_MOVE_INCREMENT)
-                .move_step()
-        } else {
-            updated_ball
+                .move_step(),
+            Ordering::Equal => updated_ball
                 .velocity(updated_ball.dx, -BALL_MOVE_INCREMENT)
-                .move_step()
+                .move_step(),
         }
     } else {
         updated_ball
@@ -149,9 +173,12 @@ fn update_ball(updated_bat: &Shape, original: &Model) -> BallResult {
 
     // Ball reaches top of world?
     if collided_horizontally.top() < original.world.top() {
+        let dx_jitter = Normal::new(0.0, BALL_MOVE_JITTER as f64)
+            .unwrap()
+            .sample(&mut original.rng) as i32;
         BallResult::Move(
             collided_horizontally
-                .velocity(collided_horizontally.dx, BALL_MOVE_INCREMENT)
+                .velocity(collided_horizontally.dx + dx_jitter, BALL_MOVE_INCREMENT)
                 .move_step(),
         )
     } else if collided_horizontally.bottom() > original.world.bottom() {

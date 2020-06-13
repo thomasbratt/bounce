@@ -29,7 +29,7 @@ impl Dispatcher {
     pub fn run<Model>(
         &mut self,
         initialize_model: fn() -> Model,
-        update_model: fn(action: Action, model: &Model) -> Option<Model>,
+        update_model: fn(action: Action, model: &mut Model) -> Option<Model>,
         cleanup_model: fn(model: Model),
         render: fn(canvas: &mut WindowCanvas, model: &Model),
     ) {
@@ -45,7 +45,7 @@ impl Dispatcher {
                         return;
                     }
                     action => {
-                        if let Some(new_model) = update_model(action, &model) {
+                        if let Some(new_model) = update_model(action, &mut model) {
                             model = new_model;
                             render(&mut self.canvas, &model);
                         }
