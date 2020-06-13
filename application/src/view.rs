@@ -18,18 +18,13 @@ pub fn render(canvas: &mut WindowCanvas, model: &model::Model) {
 
 fn render_bat(canvas: &mut WindowCanvas, bat: &shape::Shape) {
     canvas.set_draw_color(Color::WHITE);
-    let _ = canvas.fill_rect(Rect::new(
-        bat.x - (bat.width / 2),
-        bat.y - (bat.height / 2),
-        bat.width as u32,
-        bat.height as u32,
-    ));
+    let _ = canvas.fill_rect(Rect::new(bat.x, bat.y, bat.width as u32, bat.height as u32));
 }
 
 fn render_ball(canvas: &mut WindowCanvas, ball: &shape::Shape) {
     let _ = canvas.filled_circle(
-        ball.x as i16,
-        ball.y as i16,
+        (ball.x + (ball.width / 2)) as i16,
+        (ball.y + (ball.height / 2)) as i16,
         (ball.width / 2) as i16,
         Color::WHITE,
     );

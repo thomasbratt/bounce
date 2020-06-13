@@ -39,22 +39,15 @@ impl Shape {
     }
 
     pub fn velocity(self: &Self, dx: i32, dy: i32) -> Self {
-        Shape::new(
-            self.x,
-            self.y,
-            self.width as i32,
-            self.height as i32,
-            dx,
-            dy,
-        )
+        Shape::new(self.x, self.y, self.width, self.height, dx, dy)
     }
 
     pub fn move_step(self: &Self) -> Self {
         Shape::new(
             self.x + self.dx,
             self.y + self.dy,
-            self.width as i32,
-            self.height as i32,
+            self.width,
+            self.height,
             self.dx,
             self.dy,
         )

@@ -80,7 +80,7 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
             original.score,
         )),
         BallResult::Miss(_) => {
-            println!("Hit score:{}", original.score);
+            println!("Miss score:{}", original.score);
             let initialized = initialize();
             Some(Model::new(
                 initialized.ball,
@@ -120,7 +120,6 @@ fn update_ball(updated_bat: &Shape, original: &Model) -> BallResult {
 
     // Bat hits ball?
     let is_hit = shape::is_intersection(&updated_bat, &updated_ball);
-    // println!("is_hit: {}", is_hit);
     let hit: Shape = if is_hit {
         if updated_bat.dx > 0 {
             updated_ball
@@ -150,23 +149,16 @@ fn update_ball(updated_bat: &Shape, original: &Model) -> BallResult {
 
     // Ball reaches top of world?
     if collided_horizontally.top() < original.world.top() {
-        println!("ball reaches top");
         BallResult::Move(
             collided_horizontally
                 .velocity(collided_horizontally.dx, BALL_MOVE_INCREMENT)
                 .move_step(),
         )
     } else if collided_horizontally.bottom() > original.world.bottom() {
-        println!(
-            "ball reaches bottom: ball:{:?} world:{:?}",
-            collided_horizontally, original.world
-        );
         BallResult::Miss(collided_horizontally)
     } else if is_hit {
-        println!("ball hit");
         BallResult::Hit(collided_horizontally)
     } else {
-        // println!("ball moves freely");
         BallResult::Move(collided_horizontally)
     }
 }
