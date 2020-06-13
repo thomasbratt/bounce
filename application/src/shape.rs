@@ -54,8 +54,16 @@ impl Shape {
     }
 }
 
-// TODO: sort out namespace and write unit tests
-pub fn is_intersection(s1: &Shape, s2: &Shape) -> bool {
-    cmp::max(s1.x - s2.x, s2.x - s1.x) < (s1.width / 2 + s2.width / 2)
-        && cmp::max(s1.y - s2.y, s2.y - s1.y) < (s1.height / 2 + s2.height / 2)
+// TODO: write unit tests
+pub fn is_intersection(a: &Shape, b: &Shape) -> bool {
+    is_intersection_interval(a.x, a.width, b.x, b.width)
+        && is_intersection_interval(a.y, a.height, b.y, b.height)
+}
+
+fn is_intersection_interval(a: i32, a_extent: i32, b: i32, b_extent: i32) -> bool {
+    if a < b {
+        a + a_extent > b
+    } else {
+        b + b_extent > a
+    }
 }

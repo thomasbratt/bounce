@@ -92,12 +92,6 @@ pub fn update(action: Action, original: &Model) -> Option<Model> {
     }
 }
 
-enum BallResult {
-    Hit(Shape),
-    Miss(Shape),
-    Move(Shape),
-}
-
 fn update_bat(action: Action, original: &Model) -> Shape {
     let updated_bat = match action {
         Action::Left => original.bat.velocity(-BAT_MOVE_INCREMENT, 0).move_step(),
@@ -114,11 +108,17 @@ fn update_bat(action: Action, original: &Model) -> Shape {
     }
 }
 
+enum BallResult {
+    Hit(Shape),
+    Miss(Shape),
+    Move(Shape),
+}
+
 fn update_ball(updated_bat: &Shape, original: &Model) -> BallResult {
     // Move ball
     let updated_ball: Shape = original.ball.move_step();
 
-    // Bat hits ball?
+    // Ball hits bat?
     let is_hit = shape::is_intersection(&updated_bat, &updated_ball);
     let hit: Shape = if is_hit {
         if updated_bat.dx > 0 {
