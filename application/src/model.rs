@@ -47,7 +47,7 @@ pub fn initialize() -> Model {
         ),
         // Bat
         Shape::new(
-            (WORLD_WIDTH + BAT_WIDTH) / 2,
+            WORLD_WIDTH / 2 - BAT_WIDTH / 2,
             WORLD_HEIGHT - 2 * BAT_HEIGHT,
             BAT_WIDTH,
             BAT_HEIGHT,
