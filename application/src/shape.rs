@@ -20,27 +20,27 @@ impl Shape {
         }
     }
 
-    pub fn left(self: &Self) -> i32 {
+    pub fn left(&self) -> i32 {
         self.x
     }
 
-    pub fn right(self: &Self) -> i32 {
+    pub fn right(&self) -> i32 {
         self.x + self.width
     }
 
-    pub fn top(self: &Self) -> i32 {
+    pub fn top(&self) -> i32 {
         self.y
     }
 
-    pub fn bottom(self: &Self) -> i32 {
+    pub fn bottom(&self) -> i32 {
         self.y + self.height
     }
 
-    pub fn velocity(self: &Self, dx: i32, dy: i32) -> Self {
+    pub fn velocity(&self, dx: i32, dy: i32) -> Self {
         Shape::new(self.x, self.y, self.width, self.height, dx, dy)
     }
 
-    pub fn move_step(self: &Self) -> Self {
+    pub fn move_step(&self) -> Self {
         Shape::new(
             self.x + self.dx,
             self.y + self.dy,

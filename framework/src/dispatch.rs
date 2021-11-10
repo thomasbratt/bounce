@@ -13,7 +13,7 @@ use crate::polltimer::PollTimer;
 pub struct Dispatcher {
     canvas: WindowCanvas,
     event_pump: EventPump,
-    pull_timer: PollTimer,
+    poll_timer: PollTimer,
 }
 
 impl Dispatcher {
@@ -22,7 +22,7 @@ impl Dispatcher {
         Dispatcher {
             canvas,
             event_pump,
-            pull_timer,
+            poll_timer: pull_timer,
         }
     }
 
@@ -55,10 +55,10 @@ impl Dispatcher {
         }
     }
 
-    fn next_actions(self: &mut Self) -> Vec<Action> {
+    fn next_actions(&mut self) -> Vec<Action> {
         loop {
-            if self.pull_timer.is_elapsed() {
-                self.pull_timer = self.pull_timer.reset();
+            if self.poll_timer.is_elapsed() {
+                self.poll_timer = self.poll_timer.reset();
 
                 if let Some(Event::Quit { .. }) = self.event_pump.poll_event() {
                     return vec![Action::Quit];
@@ -79,7 +79,7 @@ impl Dispatcher {
                     actions
                 };
             } else {
-                ::std::thread::sleep(self.pull_timer.remaining());
+                ::std::thread::sleep(self.poll_timer.remaining());
             }
         }
     }

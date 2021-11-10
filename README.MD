@@ -4,11 +4,15 @@ Demonstration of a simple game using Rust and SDL2.
 
 # Installation
 
-dnf install SDL2-devel
-dnf install SDL2_image-devel
-dnf install SDL2_gfx-devel
-dnf install SDL2_mixer-devel
-dnf install SDL2_ttf-devel  
+    ./install_sdl2_fedora34.sh
+
+or:
+
+    dnf install -y SDL2-devel
+    dnf install -y SDL2_image-devel
+    dnf install -y SDL2_gfx-devel
+    dnf install -y SDL2_mixer-devel
+    dnf install -y SDL2_ttf-devel  
 
 # Requirements
 
@@ -20,8 +24,9 @@ dnf install SDL2_ttf-devel
 6. number of copies should be minimised
 7. possible trade off between immutability and performance
 
-# Sketch
+# Design Sketch
 
+```text
 Model:
     index_player: 1
     shapes: Vec<Shape>
@@ -50,9 +55,8 @@ update:
                     m_new = m.update_velocity().update_position()
                     determine_occupancy_updates(m, m_new) -> occupancy_updates
                     occupy, occupancy_updates -> occupy, _
-        
+```        
 
- 
 # License
 
 MIT

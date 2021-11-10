@@ -19,6 +19,7 @@ pub fn initialize(
     let window: sdl2::video::Window = video_subsystem
         .window(title, width, height)
         .position_centered()
+        .resizable()
         .build()?;
 
     let canvas: WindowCanvas = window.into_canvas().accelerated().present_vsync().build()?;

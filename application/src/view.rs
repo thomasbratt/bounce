@@ -14,6 +14,8 @@ pub fn render(canvas: &mut WindowCanvas, model: &model::Model) {
     render_bat(canvas, &model.bat);
     render_ball(canvas, &model.ball);
     canvas.present();
+
+    // println!("window: {:?}", canvas.window().size());
 }
 
 fn render_bat(canvas: &mut WindowCanvas, bat: &shape::Shape) {

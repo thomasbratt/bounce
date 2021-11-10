@@ -143,7 +143,7 @@ fn update_ball(updated_bat: &Shape, original: &mut Model) -> BallResult {
     let updated_ball: Shape = original.ball.move_step();
 
     // Ball hits bat?
-    let is_hit = shape::is_intersection(&updated_bat, &updated_ball);
+    let is_hit = shape::is_intersection(updated_bat, &updated_ball);
 
     // Update ball if hit
     let hit: Shape = if is_hit {
