@@ -7,6 +7,7 @@ jobs:
     steps:
       - checkout
       - run: sudo apt-get update
+      - run: sudo apt-get install libsdl2-2.0
       - run: sudo apt-get install libsdl2-dev
       - run: cargo --version
       - run:
