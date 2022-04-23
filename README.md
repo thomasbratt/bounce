@@ -2,6 +2,8 @@
 
 Demonstration of a simple bat and ball game using Rust and SDL2.
 
+[![CircleCI](https://circleci.com/gh/thomasbratt/bounce/tree/main.svg?style=svg)](https://circleci.com/gh/thomasbratt/bounce/tree/main)
+
 This was an experiment with a Model View Controller (MVC) pattern for GUI development, where there is also a requirement for mutable state.
 Modern GUI frameworks (such as Elm) are functional, with immutable state, whereas games typically require mutable state for performance reasons.
 
