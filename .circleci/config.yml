@@ -8,6 +8,7 @@ jobs:
       - checkout
       - run: sudo apt-get update
       - run: sudo apt-get install libsdl2-dev
+      - run: sudo apt-get install libsdl2-image-dev
       - run: sudo apt-get install libsdl2-gfx-dev
       - run: sudo apt-get install libsdl2-mixer-dev
       - run: sudo apt-get install libsdl2-ttf-dev
