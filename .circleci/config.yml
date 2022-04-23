@@ -6,6 +6,8 @@ jobs:
       - image: cimg/rust:1.60.0
     steps:
       - checkout
+      - run: sudo apt-get update
+      - run: sudo apt-get install libsdl2-dev
       - run: cargo --version
       - run:
           name: Run Tests
