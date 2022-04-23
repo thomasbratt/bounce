@@ -28,6 +28,15 @@ or:
     dnf install -y SDL2_mixer-devel
     dnf install -y SDL2_ttf-devel  
 
+The following works on Ubuntu:
+
+    apt-get update
+    apt-get install libsdl2-dev
+    apt-get install libsdl2-image-dev
+    apt-get install libsdl2-gfx-dev
+    apt-get install libsdl2-mixer-dev
+    apt-get install libsdl2-ttf-dev
+
 # License
 
 MIT
